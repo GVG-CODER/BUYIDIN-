@@ -1,71 +1,50 @@
 {% extends "auctions/layout.html" %}
-
+{% load static %}
 {% block body %}
     <h2>Active Listings</h2>
+
     {% if messages %}
-    {% for message in messages %}
-    <div class="message">{{ message }}</div>
-    {% endfor %}
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
     {% endif %}
+
     <div id="activelist">
-    {% for list in a1 %}
-    <div class = "card">
-        <a class="title">{{list.title}}</a>
-        <a class= "cat">{{list.category}}</a>
-        {% if list.image_url %}
-            <img src="{{ list.image_url }}" class="list_img">
+        {% if a1 %}
+            {% for list in a1 %}
+                <div class="card">
+                    <a class="title">{{ list.title }}</a>
+                    <a class="cat">{{ list.category }}</a>
+                    {% if list.image_url %}
+                        <img src="{{ list.image_url }}" class="list_img" alt="{{ list.title }}">
+                    {% else %}
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/No_image_3x4.svg/1024px-No_image_3x4.svg.png" 
+                             alt="No image Provided" class="list_img">
+                    {% endif %}
+
+                    <p class="desc">{{ list.desc }}</p>
+                    <a><span class="c_price">Starting Bid:</span> {{ list.starting_bid }} $</a>
+
+                    {# Calculating remaining time #}
+                    {% if list.remaining_time %}
+                        <p class="time-remaining">Time Remaining: {{ list.remaining_time }}</p>
+                    {% else %}
+                        <p class="time-remaining">Auction end time not set.</p>
+                    {% endif %}
+                    {% if request.user.is_authenticated and request.user == list.owner %}
+                        <form method="POST" action="{% url 'sell_now' list.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="sell-button">Sell Now</button>
+                        </form>
+                    {% endif %}
+
+                    <a href="{% url 'listingpage' list.id %}">View Bid</a>
+                </div>
+            {% endfor %}
         {% else %}
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/No_image_3x4.svg/1024px-No_image_3x4.svg.png" alt="No image Provided" class="list_img">
+            <p>No active listings available.</p>
         {% endif %}
-
-        <p class="desc">{{ list.desc }}</p>
-        <a><a class="c_price">Starting Bid: </a> {{ list.starting_bid }} $ </a>
-        <a href="{% url 'listingpage' list.id %}">View Bid</a>
-    </div>  
-    {% endfor %}
     </div>
-      
-<style>
-p{
-    padding: 1vw;
-}
-#activelist{
-    margin-top: 4vw;
-    grid-gap: 2vw;
-    display:grid;
-    width: 90%;
-    margin-left: 5%;
-    grid-template-rows: repeat(auto,1fr);
-    grid-template-columns: 1fr 1fr 1fr;
-    font-family: 'Nunito', sans-serif;
-    text-align: center;
-}
-.card{
-    display: grid;
-    grid-template-rows: repeat(auto,1fr);
-    grid-template-columns: 1fr;
-    width: 90%;
-    margin-left: 5%;
-}
 
-img{
-        width: 100%;
-    }
-
-.title{
-
-    font-size: 2vw;
-    font-weight: bold;
-}
-.c_price{
-    font-weight: bold;
-}
-
-
-</style>
-
-
-
+    <link rel="stylesheet" href="{% static 'auctions/styles.css' %}">
 {% endblock %}
-
-

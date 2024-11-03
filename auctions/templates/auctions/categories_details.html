@@ -1,0 +1,25 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block body %}
+    {% if error %}
+        <div class="error" style="color: red;">{{ error }}</div>
+    {% else %}
+        <ul class="product-list">
+            {% for product in products %}
+                <li class="product-item">
+                    <h2>{{ product.title }}</h2>
+                    <p>{{ product.desc }}</p>
+                    <p>Price: ${{ product.starting_bid }}</p>
+                    {% if product.image_url %}
+                        <img src="{{ product.image_url }}" alt="{{ product.title }}" class="product-image" />
+                    {% else %}
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/No_image_3x4.svg/1024px-No_image_3x4.svg.png" alt="No image available" class="product-image" />
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>No products available in this category.</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

@@ -8,7 +8,7 @@ venv/
 .venv/
 ENV/
 env/
-
+virtual/
 # Django Migrations
 **/migrations/
 

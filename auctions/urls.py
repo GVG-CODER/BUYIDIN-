@@ -16,7 +16,10 @@ urlpatterns = [
     path("comments", views.allcomments, name="allcomments"),
     path("win_ner", views.win_ner, name="win_ner"),
     path("winnings", views.winnings, name="winnings"),
-    path("cat_list", views.cat_list, name="cat_list"),
-    path("categories/<str:category_name>", views.cat, name="cat"),
+    path("categories/<int:category_id>/", views.categories_details, name="categories_details"),
+    path("categorie", views.Category_list, name="cat"),
+    path('sell_now/<int:product_id>/', views.sell_now, name='sell_now'),
+    path("payment-status", views.payment_status, name="payment-status"),
+    path("payment",views.payment, name="payment")
 ]
 

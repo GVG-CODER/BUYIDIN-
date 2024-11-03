@@ -1,0 +1,17 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+
+{% block body %}
+    {% if status %}
+        <div class="container" style="text-align: center;">
+            <i class="fa fa-check-circle-o" aria-hidden="true" style="font-size: 80px; color : green;"></i>
+        </div>
+        <h2 style="text-align: center;">Thank you, Your payment was successful.</h2>
+    {% else %}
+        <h2>Your payment is failed, Try again.</h2>
+    {% endif %}
+    <div class="text-center mt-5">
+        <a href="{% url 'index' %}" class="btn btn-primary" role="button">Bid for another one.</a>
+    </div>
+{% end block%}

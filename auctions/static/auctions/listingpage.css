@@ -1,0 +1,71 @@
+/* Close Bid Button Styling */
+.closebid {
+    padding: 1vw;
+}
+
+/* Active List Container */
+#activelist {
+    margin-top: 2vw;
+    grid-gap: 2vw;
+    display: grid;
+    width: 80%;
+    margin-left: 10%;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 0.5fr;
+    font-family: 'Nunito', sans-serif;
+}
+
+/* Paragraph Styling */
+p {
+    margin-top: 1vw;
+}
+
+/* Comment Section Styling */
+#commentsection {
+    background-color: #F5F5F5;
+}
+
+/* Bid Amount Form Styling */
+.bid_amnt {
+    padding: 1vw;
+}
+
+/* Heading Styling */
+h3 {
+    padding-top: 2vw;
+}
+
+/* Comment Box Styling */
+#commentbox {
+    text-align: left;
+    padding-top: 1vw;
+    background-color: white;
+    min-height: 300px;
+    margin: 1vw;
+}
+
+/* Image Styling */
+.list_img {
+    width: 100%;
+}
+
+/* Title Styling */
+.title {
+    font-size: 2vw;
+    font-weight: bold;
+}
+
+/* Current Price Label Styling */
+.c_price {
+    font-weight: bold;
+}
+
+/* Comment Styling */
+.comment {
+    text-align: left;
+}
+
+/* Starting Bid Styling */
+.start_bid {
+    padding-bottom: 1vw;
+}

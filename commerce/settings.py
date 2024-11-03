@@ -32,12 +32,13 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'auctions',
+    'crispy_forms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles'
 ]
 
 MIDDLEWARE = [
@@ -122,3 +123,19 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+from celery.schedules import crontab
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BEAT_SCHEDULE = {
+    'start_auction': {
+        'task': 'myapp.tasks.start_auction_session',
+        'schedule': crontab(hour=0, minute=0, day_of_week=1),  # Monday at midnight
+    },
+    'end_auction': {
+        'task': 'myapp.tasks.end_auction_session',
+        'schedule': crontab(hour=23, minute=59, day_of_week=2),  # Tuesday at 11:59 p.m.
+    },
+}
+
+CRISPY_TEMPLATE_PACK = "bootstarp4"

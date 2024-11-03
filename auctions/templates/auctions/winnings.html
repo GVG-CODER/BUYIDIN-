@@ -1,5 +1,8 @@
 {% extends "auctions/layout.html" %}
-
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/winnings.css' %}">
+{% endblock %}
 {% block body %}
     <h2>Your Winnings</h2>
     <div id="activelist">
@@ -14,47 +17,9 @@
         {% endif %}
         <p class="desc">{{ list.bid_win_list.desc }}</p>
         <div>This bid was listed by <a class = "listuser">{{ list.bid_win_list.user }}</a>.</div>
-    </div>  
+    </div>
     {% endfor %}
     </div>
-      
-<style>
-        
-#activelist{
-    margin-top: 4vw;
-    grid-gap: 2vw;
-    display:grid;
-    width: 90%;
-    margin-left: 5%;
-    grid-template-rows: repeat(auto,1fr);
-    grid-template-columns: 1fr 1fr;
-    font-family: 'Nunito', sans-serif;
-    text-align: center;
-}
-.card{
-    display: grid;
-    grid-template-rows: repeat(auto,1fr);
-    grid-template-columns: 1fr;
-    width: 90%;
-    margin-left: 5%;
-}
-
-img{
-        width: 100%;
-    }
-
-.title{
-
-    font-size: 2vw;
-    font-weight: bold;
-}
-.listuser{
-    font-weight: bold;
-}
-button{
-    width: 100%;
-}
-</style>
 {% endblock %}
 
 

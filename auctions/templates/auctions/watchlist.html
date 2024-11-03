@@ -1,5 +1,8 @@
 {% extends "auctions/layout.html" %}
-
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/watchlist.css' %}">
+{% endblock %}
 {% block body %}
     <h2>Watch List</h2>
     <div id="activelist">
@@ -15,52 +18,13 @@
         {% endif %}
         <a><a class="c_price">Current Price: </a> {{ list.watch_list.starting_bid }} $ </a>
         <a href="{% url 'listingpage' list.watch_list.id %}">View Bid</a>
-        
         <form action = "{% url 'deletewatchlist' %}">
         <button type = "submit" value = {{ list.id }} name = "listid" >Delete</button>
         </form>
     {% endif %}
-    </div>  
+    </div>
     {% endfor %}
     </div>
-      
-<style>
-        
-#activelist{
-    margin-top: 4vw;
-    grid-gap: 2vw;
-    display:grid;
-    width: 90%;
-    margin-left: 5%;
-    grid-template-rows: repeat(auto,1fr);
-    grid-template-columns: 1fr 1fr 1fr;
-    font-family: 'Nunito', sans-serif;
-    text-align: center;
-}
-.card{
-    display: grid;
-    grid-template-rows: repeat(auto,1fr);
-    grid-template-columns: 1fr;
-    width: 90%;
-    margin-left: 5%;
-}
-
-img{
-        width: 100%;
-    }
-
-.title{
-
-    font-size: 2vw;
-    font-weight: bold;
-}
-.c_price{
-    font-weight: bold;
-}
-button{
-    width: 100%;
-}
-</style>
 {% endblock %}
 
 
