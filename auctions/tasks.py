@@ -1,4 +1,4 @@
-from celery import shared_task
+from celery import shared_task #as a decorator
 from django.utils import timezone
 from datetime import timedelta
 from .models import AuctionSession, Product, Bid
