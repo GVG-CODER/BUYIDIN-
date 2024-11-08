@@ -25,7 +25,7 @@ SECRET_KEY = '6ps8j!crjgrxt34cqbqn7x&b3y%(fny8k8nh21+qa)%ws3fh!q'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -33,10 +33,12 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'django.contrib.sites',
     'allauth',
+    'channels',
     'allauth.account',
     'allauth.socialaccount',
     'auctions',
     'crispy_forms',
+    'crispy_bootstrap4',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -76,7 +78,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'commerce.wsgi.application'
-
+ASGI_APPLICATION = 'auctions.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
@@ -130,7 +132,7 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CRISPY_TEMPLATE_PACK = "bootstarp4"
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 
 
@@ -160,3 +162,34 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+
+
+
+RAZORPAY_KEY_ID = "rzp_test_bgWyPGleNhovPs"
+RAZORPAY_SECRET_KEY = "VwdlUBiKUWk2BzVfE113gZRz"
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'agaikwad1234567890@gmail.com'
+EMAIL_HOST_PASSWORD = 'gsasvgaikwad5'
+
+# Admin  details :
+# gauravgaikwad, iamgauravgaikwad007@gmail.com, gsasvgaikwad5

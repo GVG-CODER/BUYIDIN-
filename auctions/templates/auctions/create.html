@@ -9,7 +9,7 @@
 {% block body %}
     <h2 style="font-weight: bold; text-align: center; font-family: Nunito;">Add Product</h2>
     <div id="activelist">
-        <form method="POST">
+        <form  action="{% url 'create' %}" method="POST" >
             {% csrf_token %}
             <div class="title">
                 <input required placeholder="Title" autofocus type="text" name="create_title"/>

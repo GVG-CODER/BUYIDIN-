@@ -89,9 +89,15 @@ class winner(models.Model):
     bid_win_list = models.ForeignKey(Product, on_delete = models.CASCADE)
     user = models.CharField(max_length=64, default = None)
 
+from django.db import models
+
 class payments(models.Model):
     name = models.CharField(max_length=100)
-    amount = models.CharField(max_length=100)
+    amount = models.IntegerField()
     product_id = models.CharField(max_length=100, blank=True)
-    razorpay_payment_id = models.CharField(max_length=100, blank=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    order_id = models.CharField(max_length=100, blank=True)
     paid = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.name}'s payment of {self.amount} (Paid: {self.paid})"

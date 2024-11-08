@@ -5,7 +5,7 @@ class auction(admin.ModelAdmin):
     list_display = ("id", "user", "active_bool", "title", "desc", "starting_bid", "image_url", "category")
 
 class watchl(admin.ModelAdmin):
-    list_display = ("id", "user")
+    list_display = ("id", "user" ,'product')
 class BidAdmin(admin.ModelAdmin):
     list_display = ('id', 'buyer', 'product', 'bid_amount', 'bid_time', 'bid_accepted')
 
@@ -29,3 +29,5 @@ admin.site.register(Transaction)
 admin.site.register(AuctionProduct)
 admin.site.register(payments)
 admin.site.register(Category, CategoryAdmin)
+admin.site.register(AuctionSession)
+

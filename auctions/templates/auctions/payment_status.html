@@ -1,17 +1,27 @@
 {% extends "auctions/layout.html" %}
 {% load static %}
 
-
 {% block body %}
-    {% if status %}
-        <div class="container" style="text-align: center;">
-            <i class="fa fa-check-circle-o" aria-hidden="true" style="font-size: 80px; color : green;"></i>
+    <div class="container text-center" style="padding: 30px; max-width: 600px;">
+        {% if status %}
+            <!-- Payment Success Message -->
+            <div class="success-message">
+                <i class="fa fa-check-circle" aria-hidden="true" style="font-size: 80px; color: green;"></i>
+                <h2 class="mt-3">Thank you! Your payment was successful.</h2>
+                <p class="lead">Your transaction has been completed successfully.</p>
+            </div>
+        {% else %}
+            <!-- Payment Failure Message -->
+            <div class="failure-message">
+                <i class="fa fa-times-circle" aria-hidden="true" style="font-size: 80px; color: red;"></i>
+                <h2 class="mt-3">Payment Failed</h2>
+                <p class="lead">Unfortunately, we couldn't process your payment. Please try again.</p>
+            </div>
+        {% endif %}
+
+        <!-- Redirect Button -->
+        <div class="mt-5">
+            <a href="{% url 'index' %}" class="btn btn-primary btn-lg" role="button">Bid for another item</a>
         </div>
-        <h2 style="text-align: center;">Thank you, Your payment was successful.</h2>
-    {% else %}
-        <h2>Your payment is failed, Try again.</h2>
-    {% endif %}
-    <div class="text-center mt-5">
-        <a href="{% url 'index' %}" class="btn btn-primary" role="button">Bid for another one.</a>
     </div>
-{% end block%}
+{% endblock %}

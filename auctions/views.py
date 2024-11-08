@@ -1,12 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from .models import *
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-
+from .forms import PaymentForm
 
 
 
@@ -85,33 +85,38 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
+
+
+
+
 from django.middleware.csrf import get_token
-
-
-
-
 @login_required(login_url='login')
 def create(request):
     if request.method == "POST":
         user = request.user
-        token = get_token(request)  # Get the CSRF token for comparison
-        print("CSRF Token:", token)
-
-        # Get form fields
         title = request.POST.get('title')
         desc = request.POST.get('desc')
-        starting_bid = request.POST.get('starting_bid')
         image_url = request.POST.get('image_url')
         category_id = request.POST.get('category')
 
-        # Ensure required fields are provided
-        if not title or not desc or not starting_bid or not category_id:
+        # Validate required fields
+        if not title or not desc or not category_id:
             return render(request, 'auctions/create.html', {
                 'error': 'Please fill in all required fields.',
                 'categories': Category.objects.all()
             })
 
-        # Try to fetch the Category instance
+        # Validate starting_bid
+        starting_bid = request.POST.get('starting_bid')
+        try:
+            starting_bid = float(starting_bid)
+        except (ValueError, TypeError):
+            return render(request, 'auctions/create.html', {
+                'error': 'Starting bid must be a valid number.',
+                'categories': Category.objects.all()
+            })
+
+        # Fetch the Category instance
         try:
             category = Category.objects.get(id=category_id)
         except Category.DoesNotExist:
@@ -119,6 +124,7 @@ def create(request):
                 'error': 'Selected category does not exist.',
                 'categories': Category.objects.all()
             })
+
         # Create and save the Product instance
         product = Product(
             user=user,
@@ -128,9 +134,17 @@ def create(request):
             image_url=image_url,
             category=category
         )
-        product.save()
-        print("Product saved:", product.title)
-        return redirect('index')
+
+        try:
+            product.save()
+            print("Product saved:", product.title)
+            return redirect('index')
+        except Exception as e:
+            print("Error saving product:", e)
+            return render(request, 'auctions/create.html', {
+                'error': 'An error occurred while saving the product.',
+                'categories': Category.objects.all()
+            })
 
     categories = Category.objects.all()
     return render(request, 'auctions/create.html', {'categories': categories})
@@ -140,38 +154,45 @@ def create(request):
 
 @login_required(login_url='login')
 def listingpage(request, bidid):
-    # Fetch the product with 'pending' status by ID
     biddesc = get_object_or_404(Product, pk=bidid, active_bool='pending')
 
-    # Fetch an active auction session
     auction_session, created = AuctionSession.objects.get_or_create(
         start_time=timezone.now(),
-        end_time=timezone.now() + timezone.timedelta(days=1),  # Adjust end time as needed
-        status='open'
+        end_time=timezone.now() + timezone.timedelta(days=1),
+        defaults={'status': 'open'}
     )
 
-    # Ensure the product is added to AuctionProduct if not already there
     auction_product, auction_created = AuctionProduct.objects.get_or_create(
         auction=auction_session,
         product=biddesc,
         defaults={'start_bid': biddesc.starting_bid}
     )
 
-    # Get all bids for the product and determine the highest bid or use starting bid
     Bid_present = Bid.objects.filter(product=biddesc)
     current_bid = Bid_present.aggregate(models.Max('bid_amount'))['bid_amount__max'] or biddesc.starting_bid
 
+    # Fetch comments related to the product
+    product_comments = comments.objects.filter(listingid=biddesc)
+
+    product_ids = [biddesc.id]
     return render(request, "auctions/listingpage.html", {
         "list": biddesc,
-        "comments": biddesc.comments.all(),
+        "comments": product_comments,
         "present_bid": current_bid,
+        "product_ids": product_ids
     })
+
+
+
 
 @login_required(login_url='login')
 def watchlistpage(request, username):
-    list_ = watchlist.objects.filter(user = username)
+    user = get_object_or_404(User, username=username)
+    list_ = watchlist.objects.filter(user = user)
+    print(f"the list is {list_}")
     return render(request, "auctions/watchlist.html",{
         "user_watchlist" : list_,
+        "user": user,
     })
 
 
@@ -179,20 +200,24 @@ def watchlistpage(request, username):
 
 @login_required(login_url='login')
 def addwatchlist(request):
-    nid = request.GET["listid"]
+    nid = request.POST.get("listid")
 
-    list_ = watchlist.objects.filter(user = request.user.username)
+    if not nid:
+        messages.error(request, "List ID was not provided.")
+        return redirect('listingpage', bidid=nid)
+    existing_watchlist = watchlist.objects.filter(user=request.user)
+    print(existing_watchlist)
+    for item in existing_watchlist:
+        if item.product.id == int(nid):
+            messages.info(request, "This item is already in your watchlist.")
+            return redirect('listingpage', bidid=nid)
 
-    for items in list_:
-        if int(items.watch_list.id) == int(nid):
-            return watchlistpage(request, request.user.username)
+    new_watchlist = watchlist(product=Product.objects.get(pk=nid), user=request.user)
+    new_watchlist.save()
 
-    newwatchlist = watchlist(watch_list = Product.objects.get(pk = nid), user = request.user.username)
-    newwatchlist.save()
+    messages.success(request, "Item added to watchlist.")
 
-    messages.success(request, "Item added to watchlist")
-
-    return listingpage(request, nid)
+    return redirect('listingpage', bidid=nid)
 
 
 
@@ -202,7 +227,7 @@ def deletewatchlist(request):
     rm_id = request.GET["listid"]
     list_ = watchlist.objects.get(pk = rm_id)
 
-    messages.success(request, f"{list_.watch_list.title} is deleted from your watchlist.")
+    messages.success(request, f"{list_.product.title} is deleted from your watchlist.")
     list_.delete()
 
     return redirect("index")
@@ -212,12 +237,10 @@ def deletewatchlist(request):
 
 # this function returns minimum bid required to place a user's bid
 def minbid(min_bid, present_bid):
-    for Bid_list in present_bid:
-        if min_bid < int(Bid_list.bid):
-            min_bid = int(Bid_list.bid)
+    for bid in present_bid:
+        if min_bid < int(bid.bid_amount):
+            min_bid = int(bid.bid_amount)
     return min_bid
-
-
 
 
 @login_required(login_url='login')
@@ -228,10 +251,8 @@ def bid(request):
         if bid_amnt is None or list_id is None:
             messages.error(request, "Bid amount and listing ID are required.")
             return redirect("index")
-        # Fetching existing bids for the product using the correct field
         Bid_present = Bid.objects.filter(product_id=list_id)
         startingbid = get_object_or_404(Product, pk=list_id)
-        # Determine the minimum required bid
         min_req_bid = startingbid.starting_bid
         min_req_bid = minbid(min_req_bid, Bid_present)
 
@@ -250,15 +271,17 @@ def bid(request):
 
 @login_required(login_url='login')
 def allcomments(request):
-    comment = request.GET["comment"]
-    username = request.user.username
-    list_id = request.GET["listid"]
-    new_comment = comments(user = username, comment = comment, listingid = list_id)
-    new_comment.save()
-    return listingpage(request, list_id)
+    if request.method == "POST":
+        comment_text = request.POST.get("comment")
+        list_id = request.POST.get("listid")
+        product = get_object_or_404(Product, id=list_id)
 
+        new_comment = comments(user=request.user, comment=comment_text, listingid=product)
 
+        new_comment.save()
 
+        return redirect('listingpage', bidid=product.id)
+    return redirect('listingpage', bidid=list_id)
 
 
 @login_required(login_url='login')
@@ -383,58 +406,87 @@ def sell_now(request, product_id):
 
 
 # payment
-from . forms import PaymentForm
+from django.conf import settings
+from .forms import PaymentForm
 import razorpay
-
 @login_required(login_url="login")
 def payment(request):
+    form = PaymentForm()
+    payment_data = None
+
     if request.method == "POST":
-        name = request.POST.get("name")
-        amount = int(request.POST.get("amount"))*100
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data.get("name")
+            amount = int(form.cleaned_data.get("amount")) * 100
 
-        #create razorpay client
-        client = razorpay.Client(auth=('rzp_test_bgWyPGleNhovPs','VwdlUBiKUWk2BzVfE113gZRz'))
+            # Create Razorpay client using credentials from settings
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
 
-        #create order
-        response_payment = client.order.create(dict(amount=amount,
-                                                    currency = 'INR')
-                                               )
-        order_id = response_payment['id']
-        order_status = response_payment['status']
+            # Attempt to create an order in Razorpay
+            try:
+                response_payment = client.order.create({"amount": amount, "currency": "INR"})
+                order_id = response_payment['id']
+                order_status = response_payment['status']
 
-        if order_status == "created":
-            payment = payment(
-                name=name,
-                amount=amount,
-                order_id=order_id
-            )
-            payment.save()
-            response_payment['name']=name
-            form = PaymentForm(request.POST or None)
-            return render(request, "auctions/payment.html", {"form":form, "payment":response_payment})
+                if order_status == "created":
+                    payment_instance = payments(
+                        name=name,
+                        amount=amount // 100,
+                        order_id=order_id
+                    )
+                    payment_instance.save()
 
-    form = payment()
-    return render(request, "auctions/payment.html", { 'form': form })
+                    payment_data = response_payment
+                    payment_data['name'] = name
+                    payment_data['key'] = settings.RAZORPAY_KEY_ID
+
+            except Exception as e:
+                print(f"Error creating Razorpay order: {e}")
+
+    return render(request, "auctions/payment.html", {"form": form, "payment": payment_data})
 
 
 
 
 @login_required(login_url="login")
 def payment_status(request):
-    response = request.POST
-    params_dict = {
-        'razorpay_order_id': response['razorpay_order_id'],
-        'razorpay_payment_id': response['razorpay_payment_id'],
-        'razorpay_signature': response['razorpay_signature']
-    }
-    #client instance
-    client = razorpay.Client(auth=('rzp_test_bgWyPGleNhovPs','VwdlUBiKUWk2BzVfE113gZRz'))
-    try:
-        status = client.utility.verify_payment_signature(params_dict)
-        payment = payments.objects.get(order_id=response["razorpay_order_id"])
-        payment.razorpay_payment_id = response["razorpay_payment_id"]
-        payment.paid = True
-        payment.save()
-        return render(request, "auctions/payment_status.html", {'status':True})
-    except:
-        return render(request, 'payment_status.html',{'status':False})
+    if request.method == "POST":
+        response = request.POST
+
+        if 'razorpay_order_id' in response and 'razorpay_payment_id' in response and 'razorpay_signature' in response:
+            params_dict = {
+                'razorpay_order_id': response['razorpay_order_id'],
+                'razorpay_payment_id': response['razorpay_payment_id'],
+                'razorpay_signature': response['razorpay_signature']
+            }
+
+            # Initializing Razorpay client
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
+
+            try:
+                # Verify the payment signature
+                client.utility.verify_payment_signature(params_dict)
+
+                # Retrieve the payment record from the database and update its status
+                payment = get_object_or_404(payments, order_id=params_dict['razorpay_order_id'])
+                payment.razorpay_payment_id = params_dict['razorpay_payment_id']
+                payment.paid = True
+                payment.save()
+
+                # Render a success message on successful payment verification
+                return render(request, "auctions/payment_status.html", {'status': True})
+
+            except razorpay.errors.SignatureVerificationError:
+                print("Error: Signature verification failed.")
+                return render(request, "auctions/payment_status.html", {'status': False, 'error_message': 'Signature verification failed. Please try again.'})
+
+            except Exception as e:
+                print(f"Error occurred during payment processing: {e}")
+                return render(request, "auctions/payment_status.html", {'status': False, 'error_message': 'An error occurred during payment processing. Please contact support.'})
+
+        else:
+            print("Error: Missing payment information in the callback response.")
+            return render(request, "auctions/payment_status.html", {'status': False, 'error_message': 'Incomplete payment data received. Please try again.'})
+
+    return render(request, "auctions/payment_status.html", {'status': False, 'error_message': 'Invalid request method.'})

@@ -17,41 +17,43 @@
                 Not signed in.
             {% endif %}
         </div>
-        <ul class="nav nav-pills nav-fill">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'index' %}">Active Listings</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'cat' %}">Categories</a>
-            </li>
-
-            {% if user.is_authenticated %}
+        <div class="sum">
+            <ul class="nav nav-pills nav-fill">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'create' %}">Sell</a>
+                    <a class="nav-link" href="{% url 'index' %}">Active Listings</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'watchlistpage' user.username %}">Watch List</a>
+                    <a class="nav-link" href="{% url 'cat' %}">Categories</a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'winnings' %}">Your Winnings</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-                </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'create' %}">Sell</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'watchlistpage' user.username %}">Watch List</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'winnings' %}">Your Winnings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+                    </li>
 
 
-            {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">Log In</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'register' %}">Register</a>
-                </li>
-            {% endif %}
-        </ul>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Log In</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'register' %}">Register</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
         <hr>
         {% block body %}
         {% endblock %}
